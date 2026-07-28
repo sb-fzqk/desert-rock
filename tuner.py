@@ -1,6 +1,7 @@
 import pyaudio as pa
 import numpy as np
 import scipy.fft as fft
+from pitch_utilities import hz_to_note, find_nearest_string
 
 FORMAT = pa.paInt16
 CHANNELS = 1
@@ -41,7 +42,16 @@ try:
         detected_freq = positive_freqs[max_index]
 
         if cleaned_fft[max_index] > 100000:
-            print(f"Detected Frequency: {detected_freq:.2f} Hz")
+            note, target_freq, cents = hz_to_note(detected_freq)
+
+            if abs(cents) < 5:
+                status = "In Tune"
+            elif cents < 0:
+                status = f"Flat ({cents:.1f} cents)"
+            else:
+                status = f"Sharp (+{cents:.1f} cents)"
+
+            print(f"Detected Frequency: {detected_freq:.2f} Hz; \nNote: {note:<4}; \nStatus: {status} \n>---------<")
 
 except KeyboardInterrupt:
     print("\nStopping stream")
