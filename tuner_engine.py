@@ -2,6 +2,7 @@ import threading
 import pyaudio as pa
 import numpy as np
 import scipy.fft as fft
+import aubio
 from pitch_utilities import hz_to_note, find_nearest_string
 
 class TunerEngine:
@@ -12,6 +13,10 @@ class TunerEngine:
         self.format = sample_format
         self.channels = channels
         self.bin_size = self.rate / self.chunk
+
+        self.pitch_o = aubio.pitch("yin", self.chunk, self.chunk, self.rate)
+        self.pitch_o.set_unit("Hz")
+        self.pitch_o.set_tolerance(0.8)
 
         self.is_running = False
         self._thread = None
@@ -80,42 +85,20 @@ class TunerEngine:
         try:
             while self.is_running:
                 raw_input = stream.read(self.chunk, exception_on_overflow=False)
-                audio_data = np.frombuffer(raw_input, dtype=np.int16)
+                audio_data = np.frombuffer(raw_input, dtype=np.int16).astype(np.float32) / 32768.0
 
-                windowed_data = audio_data * np.hanning(self.chunk)
+                detected_freq = float(self.pitch_o(audio_data)[0])
+                confidence = float(self.pitch_o.get_confidence())
 
-                fft_result = np.abs(fft.fft(windowed_data))
-
-                positive_fft = fft_result[:self.chunk // 2]
-                positive_freqs = freqs[:self.chunk // 2]
-
-                ignore_index = np.where(positive_freqs < 40)[0]
-                cleaned_fft = positive_fft.copy()
-                cleaned_fft[ignore_index] = 0
-
-                max_index = np.argmax(cleaned_fft)
-
-                if cleaned_fft[max_index] > 100000:
-                    detected_freq = self._get_interpolated_peak(cleaned_fft, max_index)
-
+                if confidence > 0.85 and detected_freq > 40:
                     freq_history.append(detected_freq)
                     if len(freq_history) > 3:
                         freq_history.pop(0)
 
                     smoothed_freq = sum(freq_history) / len(freq_history)
-
                     note, target_freq, cents = hz_to_note(smoothed_freq)
-
                     self._notify_observers(note, target_freq, cents, smoothed_freq)
 
-                    # if abs(cents) < 5:
-                    #     status = "In Tune"
-                    # elif cents < 0:
-                    #     status = f"Flat ({cents:.1f} cents)"
-                    # else:
-                    #     status = f"Sharp (+{cents:.1f} cents)"
-
-                    # print(f"Detected Frequency: {smoothed_freq:.2f} Hz; \nNote: {note:<4}; \nStatus: {status} \n>---------<")
         finally:
             stream.stop_stream()
             stream.close()
