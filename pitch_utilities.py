@@ -28,7 +28,7 @@ def hz_to_note(freq: float):
 
     return full_note, target_freq, cents
 
-def find_nearest_string(freq: float):
+def e_standard(freq: float):
     if freq <= 0:
         return None, 0.0, 0.0
     

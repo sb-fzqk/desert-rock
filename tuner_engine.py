@@ -1,9 +1,8 @@
 import threading
 import pyaudio as pa
 import numpy as np
-import scipy.fft as fft
 import aubio
-from pitch_utilities import hz_to_note, find_nearest_string
+from pitch_utilities import hz_to_note
 
 class TunerEngine:
     # Constructor
@@ -12,7 +11,6 @@ class TunerEngine:
         self.chunk = chunk
         self.format = sample_format
         self.channels = channels
-        self.bin_size = self.rate / self.chunk
 
         self.pitch_o = aubio.pitch("yin", self.chunk, self.chunk, self.rate)
         self.pitch_o.set_unit("Hz")
@@ -48,23 +46,6 @@ class TunerEngine:
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
 
-    # DSP helper function (LLM generated)
-    def _get_interpolated_peak(self, fft_array, max_index):
-        if max_index == 0 or max_index >= len(fft_array) - 1:
-            return max_index * self.bin_size
-        
-        alpha = fft_array[max_index - 1]
-        beta = fft_array[max_index]
-        gamma = fft_array[max_index + 1]
-
-        denominator = alpha - 2 * beta + gamma
-        if denominator == 0:
-            return max_index * self.bin_size
-        
-        p = 0.5 * (alpha - gamma) / denominator
-
-        return (max_index + p) * self.bin_size
-
     # Audio engine thread loop
     def _audio_loop(self):
         p = pa.PyAudio()
@@ -77,7 +58,6 @@ class TunerEngine:
             frames_per_buffer=self.chunk
         )
 
-        freqs = fft.fftfreq(self.chunk, 1 / self.rate)
         freq_history = []
 
         print("Go on, pluck a string, don't be afraid.")
