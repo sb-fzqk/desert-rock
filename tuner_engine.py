@@ -2,23 +2,27 @@ import threading
 import pyaudio as pa
 import numpy as np
 import aubio
-from pitch_utilities import hz_to_note
+from pitch_utilities import chromatic, e_standard
 
 class TunerEngine:
     # Constructor
-    def __init__(self, rate=44100, chunk=4096, sample_format=pa.paInt16, channels=1):
+    def __init__(self, rate=44100, chunk=2048, sample_format=pa.paInt16, channels=1):
+        # Audio capture constants
         self.rate = rate
         self.chunk = chunk
         self.format = sample_format
         self.channels = channels
 
+        # Aubio setup for YIN
         self.pitch_o = aubio.pitch("yin", self.chunk, self.chunk, self.rate)
         self.pitch_o.set_unit("Hz")
         self.pitch_o.set_tolerance(0.8)
 
+        # Threading stuff
         self.is_running = False
         self._thread = None
 
+        # Obeservers list
         self._observers = []
 
     # Observer handling
@@ -58,8 +62,6 @@ class TunerEngine:
             frames_per_buffer=self.chunk
         )
 
-        freq_history = []
-
         print("Go on, pluck a string, don't be afraid.")
 
         try:
@@ -70,14 +72,9 @@ class TunerEngine:
                 detected_freq = float(self.pitch_o(audio_data)[0])
                 confidence = float(self.pitch_o.get_confidence())
 
-                if confidence > 0.85 and detected_freq > 40:
-                    freq_history.append(detected_freq)
-                    if len(freq_history) > 3:
-                        freq_history.pop(0)
-
-                    smoothed_freq = sum(freq_history) / len(freq_history)
-                    note, target_freq, cents = hz_to_note(smoothed_freq)
-                    self._notify_observers(note, target_freq, cents, smoothed_freq)
+                if confidence > 0.65 and detected_freq > 40:
+                    note, target_freq, cents = chromatic(detected_freq)
+                    self._notify_observers(note, target_freq, cents, detected_freq)
 
         finally:
             stream.stop_stream()

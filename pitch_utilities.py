@@ -11,7 +11,7 @@ STANDARD_GUITAR_TUNING = {
 
 NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-def hz_to_note(freq: float):
+def chromatic(freq: float):
     if freq <= 0:
         return None, 0.0, 0.0
     
