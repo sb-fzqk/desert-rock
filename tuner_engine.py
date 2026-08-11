@@ -2,7 +2,7 @@ import threading
 import pyaudio as pa
 import numpy as np
 import aubio
-from pitch_utilities import chromatic, e_standard
+from pitch_utilities import ChromaticTuning, DropDTuning, EStandardTuning
 
 class TunerEngine:
     # Constructor
@@ -24,6 +24,14 @@ class TunerEngine:
 
         # Obeservers list
         self._observers = []
+
+        # Tuning strategies
+        self.strategies = {
+            "Chromatic": ChromaticTuning(),
+            "E Standard": EStandardTuning(),
+            "Drop D": DropDTuning()
+        }
+        self.current_strategy = self.strategies["Chromatic"]
 
     # Observer handling
     def register_observer(self, fn):
@@ -50,6 +58,11 @@ class TunerEngine:
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
 
+    # Strategy tuning preset
+    def set_preset(self, preset):
+        if preset in self.strategies:
+            self.current_strategy = self.strategies[preset]
+
     # Audio engine thread loop
     def _audio_loop(self):
         p = pa.PyAudio()
@@ -73,7 +86,7 @@ class TunerEngine:
                 confidence = float(self.pitch_o.get_confidence())
 
                 if confidence > 0.65 and detected_freq > 40:
-                    note, target_freq, cents = chromatic(detected_freq)
+                    note, target_freq, cents = self.current_strategy.get_target(detected_freq)
                     self._notify_observers(note, target_freq, cents, detected_freq)
 
         finally:

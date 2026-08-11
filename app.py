@@ -79,6 +79,16 @@ class TunerView(ctk.CTkFrame):
         self.gauge = NeedleGauge(self, width=300, height=40, bg_color="#1f1f1f", line_color="#808080", needle_color="#ffffff")
         self.gauge.pack(pady=(20, 30))
 
+        # Tuning preset drop-down
+        self.preset_selector = ctk.CTkOptionMenu(self, values=["Chromatic", "E Standard", "Drop D"], command=self._on_preset_change)
+        self.preset_selector.pack(pady=(10, 10))
+
+    # Change tuning preset when requested and reset UI
+    def _on_preset_change(self, selected_preset):
+        self.tuner.set_preset(selected_preset)
+        
+        self._reset_ui()
+
     # Observer callback. Runs on a background thread when TunerEngine gives a new pitch
     def on_pitch_detected(self, note, target_freq, cents, detected_freq):
         self.after(0, self._update_ui, note, target_freq, cents, detected_freq)

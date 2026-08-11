@@ -1,47 +1,72 @@
 import numpy as np
-
-STANDARD_GUITAR_TUNING = {
-    "E2": 82.41,
-    "A2": 110.00,
-    "D3": 146.83, 
-    "G3": 196.00,
-    "B3": 246.94,
-    "E4": 329.63
-}
+from abc import ABC, abstractmethod
 
 NOTES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
-def chromatic(freq: float):
-    if freq <= 0:
-        return None, 0.0, 0.0
+TUNING_PRESETS = {
+    "E Standard": {
+        "E2": 82.41,
+        "A2": 110.00,
+        "D3": 146.83, 
+        "G3": 196.00,
+        "B3": 246.94,
+        "E4": 329.63
+    },
+    "Drop D": {
+        "D2": 73.42,
+        "A2": 110.00,
+        "D3": 146.83, 
+        "G3": 196.00,
+        "B3": 246.94,
+        "E4": 329.63
+    }
+}
+
+# Abstract base Strategy
+class TuningStrategy(ABC):
+    @abstractmethod
+    def get_target(self, freq):
+        pass
+
+# Chromatic Strategy
+class ChromaticTuning(TuningStrategy):
+    def get_target(self, freq):
+        if freq <= 0:
+            return None, 0.0, 0.0
     
-    midi_num = 12 * np.log2(freq / 440.0) + 69
-    nearest_midi = int(round(midi_num))
+        midi_num = 12 * np.log2(freq / 440.0) + 69
+        nearest_midi = int(round(midi_num))
 
-    note_name = NOTES[nearest_midi % 12]
-    octave = (nearest_midi // 12) - 1
-    full_note = f"{note_name}{octave}"
+        note_name = NOTES[nearest_midi % 12]
+        octave = (nearest_midi // 12) - 1
+        full_note = f"{note_name}{octave}"
 
-    target_freq = 440.0 * (2 ** ((nearest_midi - 69) / 12))
+        target_freq = 440.0 * (2 ** ((nearest_midi - 69) / 12))
 
-    cents = 1200 * np.log2(freq / target_freq)
+        cents = 1200 * np.log2(freq / target_freq)
 
-    return full_note, target_freq, cents
+        return full_note, target_freq, cents
 
-def e_standard(freq: float):
-    if freq <= 0:
-        return None, 0.0, 0.0
-    
-    best_match = None
-    smallest_diff = float("inf")
+# Base class for fixed guitar note presets
+class FixedTuningStrategy(TuningStrategy):
+    def __init__(self, target_notes):
+        self.target_notes = target_notes
 
-    for note, target in STANDARD_GUITAR_TUNING.items():
-        diff = abs(freq - target)
-        if diff < smallest_diff:
-            smallest_diff = diff
-            best_match = note
+    def get_target(self, freq):
+        if freq <= 0:
+            return None, 0.0, 0.0
 
-    target_freq = STANDARD_GUITAR_TUNING[best_match]
-    cents = 1200 * np.log2(freq / target_freq)
+        best_match = min(self.target_notes.keys(), key=lambda note: abs(freq - self.target_notes[note]))
 
-    return best_match, target_freq, cents
+        target_freq = self.target_notes[best_match]
+        cents = 1200 * np.log2(freq / target_freq)
+
+        return best_match, target_freq, cents
+
+class EStandardTuning(FixedTuningStrategy):
+    def __init__(self):
+        super().__init__(TUNING_PRESETS["E Standard"])
+
+class DropDTuning(FixedTuningStrategy):
+    def __init__(self):
+        super().__init__(TUNING_PRESETS["Drop D"])
