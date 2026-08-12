@@ -80,7 +80,7 @@ class TunerView(ctk.CTkFrame):
         self.gauge.pack(pady=(20, 30))
 
         # Tuning preset drop-down
-        self.preset_selector = ctk.CTkOptionMenu(self, values=["Chromatic", "E Standard", "Drop D"], command=self._on_preset_change)
+        self.preset_selector = ctk.CTkOptionMenu(self, values=["Chromatic", "E Standard", "Drop D"], command=self._on_preset_change, fg_color="#1f1f1f", button_color="#404040", button_hover_color="#808080")
         self.preset_selector.pack(pady=(10, 10))
 
     # Change tuning preset when requested and reset UI
