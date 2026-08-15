@@ -2,11 +2,11 @@ import threading
 import pyaudio as pa
 import numpy as np
 import aubio
-from pitch_utilities import ChromaticTuning, DropDTuning, EStandardTuning
+from pitch_utilities import TuningStrategyFactory
 
 class TunerEngine:
     # Constructor
-    def __init__(self, rate=44100, chunk=2048, sample_format=pa.paInt16, channels=1):
+    def __init__(self, rate=44100, chunk=2048, sample_format=pa.paInt16, channels=1, default_preset="E Standard"):
         # Audio capture constants
         self.rate = rate
         self.chunk = chunk
@@ -25,13 +25,12 @@ class TunerEngine:
         # Obeservers list
         self._observers = []
 
-        # Tuning strategies
-        self.strategies = {
-            "Chromatic": ChromaticTuning(),
-            "E Standard": EStandardTuning(),
-            "Drop D": DropDTuning()
-        }
-        self.current_strategy = self.strategies["Chromatic"]
+        # Tuning strategy default
+        self.current_strategy = TuningStrategyFactory.create_strategy(default_preset)
+
+    # Getter
+    def get_current_preset_name(self):
+        return self.current_strategy.name
 
     # Observer handling
     def register_observer(self, fn):
@@ -59,9 +58,8 @@ class TunerEngine:
             self._thread.join(timeout=1.0)
 
     # Strategy tuning preset
-    def set_preset(self, preset):
-        if preset in self.strategies:
-            self.current_strategy = self.strategies[preset]
+    def set_preset(self, preset_name):
+        self.current_strategy = TuningStrategyFactory.create_strategy(preset_name)
 
     # Audio engine thread loop
     def _audio_loop(self):

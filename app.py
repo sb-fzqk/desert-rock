@@ -2,6 +2,7 @@ import customtkinter as ctk
 import tkinter as tk
 import time
 from tuner_engine import TunerEngine
+from pitch_utilities import TuningStrategyFactory
 
 ctk.set_appearance_mode("Dark")
 
@@ -80,8 +81,9 @@ class TunerView(ctk.CTkFrame):
         self.gauge.pack(pady=(20, 30))
 
         # Tuning preset drop-down
-        self.preset_selector = ctk.CTkOptionMenu(self, values=["Chromatic", "E Standard", "Drop D"], command=self._on_preset_change, fg_color="#1f1f1f", button_color="#404040", button_hover_color="#808080")
+        self.preset_selector = ctk.CTkOptionMenu(self, values=list(TuningStrategyFactory.STRATEGIES.keys()), command=self._on_preset_change, fg_color="#1f1f1f", button_color="#404040", button_hover_color="#808080")
         self.preset_selector.pack(pady=(10, 10))
+        self.preset_selector.set(self.tuner.get_current_preset_name())
 
     # Change tuning preset when requested and reset UI
     def _on_preset_change(self, selected_preset):

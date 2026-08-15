@@ -30,6 +30,8 @@ class TuningStrategy(ABC):
 
 # Chromatic Strategy
 class ChromaticTuning(TuningStrategy):
+    name = "Chromatic"
+
     def get_target(self, freq):
         if freq <= 0:
             return None, 0.0, 0.0
@@ -66,7 +68,24 @@ class FixedTuningStrategy(TuningStrategy):
 class EStandardTuning(FixedTuningStrategy):
     def __init__(self):
         super().__init__(TUNING_PRESETS["E Standard"])
+        self.name = "E Standard"
 
 class DropDTuning(FixedTuningStrategy):
     def __init__(self):
         super().__init__(TUNING_PRESETS["Drop D"])
+        self.name = "Drop D"
+
+class TuningStrategyFactory:
+    STRATEGIES = {
+        "Chromatic": ChromaticTuning(),
+        "E Standard": EStandardTuning(),
+        "Drop D": DropDTuning()
+    }
+
+    @staticmethod
+    def create_strategy(preset_name):
+        strategy_class = TuningStrategyFactory.STRATEGIES.get(preset_name)
+        if not strategy_class:
+            raise ValueError(f"Unknown preset: {preset_name}")
+
+        return strategy_class
