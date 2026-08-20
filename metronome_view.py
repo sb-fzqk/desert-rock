@@ -12,14 +12,11 @@ class MetronomeView(ctk.CTkFrame):
         self.metronome.register_observer(self._on_click)
 
     def _build_ui(self):
-        self.title_label = ctk.CTkLabel(self, text="Metronome", font=ctk.CTkFont(size=12, weight="bold"))
-        self.title_label.pack(pady=(20, 10))
-
         self.bpm_label = ctk.CTkLabel(self, text=f"{self.metronome.bpm}", font=ctk.CTkFont(size=64, weight="bold"))
-        self.bpm_label.pack(pady=10)
+        self.bpm_label.pack(pady=(25, 10))
 
         self.slider_frame = ctk.CTkFrame(self, fg_color="#1f1f1f")
-        self.slider_frame.pack(pady=10)
+        self.slider_frame.pack(pady=(0, 20))
 
         self.decrement_btn = ctk.CTkButton(self.slider_frame, text="-", width=20, command=lambda: self._adjust_bpm(-1))
         self.decrement_btn.pack(side="left", padx=5)
@@ -32,11 +29,11 @@ class MetronomeView(ctk.CTkFrame):
         self.increment_btn.pack(side="right", padx=5)
 
         self.beats_frame = ctk.CTkFrame(self, fg_color="#1f1f1f", corner_radius=12)
-        self.beats_frame.pack(pady=15, ipady=6)
+        self.beats_frame.pack(pady=(15, 5), ipady=6)
         self._rebuild_beat_indicators()
 
         self.bpme_frame = ctk.CTkFrame(self, fg_color="#1f1f1f")
-        self.bpme_frame.pack(pady=5)
+        self.bpme_frame.pack(pady=(0, 10))
 
         self.bpme_label = ctk.CTkLabel(self.bpme_frame, text="Beats / Measure:", font=ctk.CTkFont(size=12))
         self.bpme_label.pack(side="left", padx=5)
@@ -46,7 +43,7 @@ class MetronomeView(ctk.CTkFrame):
         self.bpme_selector.pack(side="right", padx=5)
 
         self.toggle_btn = ctk.CTkButton(self, text="Play", font=ctk.CTkFont(size=18, weight="bold"), height=45, width=160, command=self._toggle_playback, fg_color="#2F8D4E")
-        self.toggle_btn.pack(pady=15)
+        self.toggle_btn.pack(pady=25)
 
     def _rebuild_beat_indicators(self):
         for indicator in self.beat_indicators:
@@ -99,22 +96,3 @@ class MetronomeView(ctk.CTkFrame):
         self._reset_indicators()
         # Will use is_higher here eventually to display different dot colour for the first beat !!!
         self.beat_indicators[beat_index].configure(fg_color="#ffffff")
-
-# Test code for the GUI (metronome yet to be integrated into app.py)
-if __name__ == "__main__":
-    ctk.set_appearance_mode("Dark")
-
-    root = ctk.CTk()
-    root.title("Metronome Test")
-    root.geometry("350x450")
-
-    metronome = MetronomeEngine()
-    view = MetronomeView(master=root, metronome_engine=metronome)
-    view.pack(fill="both", expand=True, padx=10, pady=10)
-
-    def on_closing():
-        metronome.stop()
-        root.destroy()
-
-    root.protocol("WM_DELETE_WINDOW", on_closing)
-    root.mainloop()

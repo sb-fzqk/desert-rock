@@ -57,17 +57,13 @@ class TunerView(ctk.CTkFrame):
         self.HISTORY_LENGTH = 5
 
     def _build_ui(self):
-        # Header label
-        self.title_label = ctk.CTkLabel(self, text="Guitar Tuner", font=ctk.CTkFont(size=12, weight="bold"))
-        self.title_label.pack(pady=(20, 10))
-
         # Note display
         self.note_label = ctk.CTkLabel(self, text="--", font=ctk.CTkFont(size=64, weight="bold"))
-        self.note_label.pack(pady=10)
+        self.note_label.pack(pady=(25, 10))
 
         # Cents / In tune label
         self.status_label = ctk.CTkLabel(self, text="Pluck a string", font=ctk.CTkFont(size=16))
-        self.status_label.pack(pady=5)
+        self.status_label.pack(pady=(0, 5))
 
         # Frequency label
         self.freq_label = ctk.CTkLabel(self, text="0.00 Hz", font=ctk.CTkFont(size=16))
