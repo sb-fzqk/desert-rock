@@ -92,5 +92,5 @@ class MetronomeView(ctk.CTkFrame):
             return
 
         self._reset_indicators()
-        # Will use is_higher here eventually to display different dot colour for the first beat !!!
-        self.beat_indicators[beat_index].configure(fg_color="#ffffff")
+        dot_colour = "#db504a" if is_higher else "#41c76b"
+        self.beat_indicators[beat_index].configure(fg_color=dot_colour)

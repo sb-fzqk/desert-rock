@@ -10,7 +10,6 @@ class DesertRock(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # Window parameneters
         self.title("Desert Rock")
         self.geometry("350x450")
         self.minsize(350, 450)
@@ -56,7 +55,6 @@ class DesertRock(ctk.CTk):
 
         self.views[selected_view].pack(fill="both", expand=True)
 
-    # Operations to do upon closing
     def on_closing(self):
         self.tuner_engine.close()
         self.metronome_engine.close()
