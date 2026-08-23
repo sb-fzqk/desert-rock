@@ -28,6 +28,12 @@ class TuningStrategy(ABC):
     def get_target(self, freq):
         pass
 
+    @staticmethod
+    def _calculate_cents(freq, target_freq):
+        if freq <= 0 or target_freq <= 0:
+            return 0.0
+        return float(1200 * np.log2(freq / target_freq))
+
 # Chromatic Strategy
 class ChromaticTuning(TuningStrategy):
     name = "Chromatic"
@@ -44,10 +50,9 @@ class ChromaticTuning(TuningStrategy):
         full_note = f"{note_name}{octave}"
 
         target_freq = 440.0 * (2 ** ((nearest_midi - 69) / 12))
+        cents = self._calculate_cents(freq, target_freq)
 
-        cents = 1200 * np.log2(freq / target_freq)
-
-        return full_note, target_freq, cents
+        return full_note, float(target_freq), cents
 
 # Base class for fixed guitar note presets
 class FixedTuningStrategy(TuningStrategy):
@@ -55,13 +60,13 @@ class FixedTuningStrategy(TuningStrategy):
         self.target_notes = target_notes
 
     def get_target(self, freq):
-        if freq <= 0:
+        if freq <= 0 or not self.target_notes:
             return None, 0.0, 0.0
 
         best_match = min(self.target_notes.keys(), key=lambda note: abs(freq - self.target_notes[note]))
 
         target_freq = self.target_notes[best_match]
-        cents = 1200 * np.log2(freq / target_freq)
+        cents = self._calculate_cents(freq, target_freq)
 
         return best_match, target_freq, cents
 
@@ -84,8 +89,8 @@ class TuningStrategyFactory:
 
     @staticmethod
     def create_strategy(preset_name):
-        strategy_class = TuningStrategyFactory.STRATEGIES.get(preset_name)
-        if not strategy_class:
+        strategy = TuningStrategyFactory.STRATEGIES.get(preset_name)
+        if not strategy:
             raise ValueError(f"Unknown preset: {preset_name}")
-
-        return strategy_class
+        
+        return strategy
