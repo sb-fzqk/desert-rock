@@ -32,15 +32,15 @@ class MetronomeView(ctk.CTkFrame):
         self.beats_frame.pack(pady=(15, 5), ipady=6)
         self._rebuild_beat_indicators()
 
-        self.bpme_frame = ctk.CTkFrame(self, fg_color="#1f1f1f")
-        self.bpme_frame.pack(pady=(0, 10))
+        self.ts_frame = ctk.CTkFrame(self, fg_color="#1f1f1f")
+        self.ts_frame.pack(pady=(0, 10))
 
-        self.bpme_label = ctk.CTkLabel(self.bpme_frame, text="Beats / Measure:", font=ctk.CTkFont(size=12))
-        self.bpme_label.pack(side="left", padx=5)
+        self.ts_label = ctk.CTkLabel(self.ts_frame, text="Beats / Measure:", font=ctk.CTkFont(size=12))
+        self.ts_label.pack(side="left", padx=5)
 
-        self.bpme_selector = ctk.CTkOptionMenu(self.bpme_frame, values=[str(i) for i in range(1, 13)], width=45, height=20, command=self._on_bpme_change)
-        self.bpme_selector.set(str(self.metronome.bpme))
-        self.bpme_selector.pack(side="right", padx=5)
+        self.ts_selector = ctk.CTkOptionMenu(self.ts_frame, values=[str(i) for i in range(1, 13)], width=45, height=20, command=self._on_ts_change)
+        self.ts_selector.set(str(self.metronome.ts))
+        self.ts_selector.pack(side="right", padx=5)
 
         self.toggle_btn = ctk.CTkButton(self, text="Play", font=ctk.CTkFont(size=18, weight="bold"), height=45, width=160, command=self._toggle_playback, fg_color="#2F8D4E")
         self.toggle_btn.pack(pady=25)
@@ -50,7 +50,7 @@ class MetronomeView(ctk.CTkFrame):
             indicator.destroy()
         self.beat_indicators.clear()
 
-        for _ in range(self.metronome.bpme):
+        for _ in range(self.metronome.ts):
             dot = ctk.CTkFrame(self.beats_frame, width=12, height=12, corner_radius=6, fg_color="#808080")
             dot.pack(side="left", padx=6)
             self.beat_indicators.append(dot)
@@ -63,13 +63,11 @@ class MetronomeView(ctk.CTkFrame):
         self.bpm_label.configure(text=f"{self.metronome.bpm}")
 
     def _on_slider_change(self, value):
-        bpm = int(value)
-        self.metronome.set_bpm(bpm)
+        self.metronome.set_bpm(int(value))
         self.bpm_label.configure(text=f"{self.metronome.bpm}")
 
-    def _on_bpme_change(self, value):
-        bpme = int(value)
-        self.metronome.set_bpme(bpme)
+    def _on_ts_change(self, value):
+        self.metronome.set_ts(int(value))
         self._rebuild_beat_indicators()
 
     def _toggle_playback(self):

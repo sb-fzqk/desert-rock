@@ -58,9 +58,8 @@ class DesertRock(ctk.CTk):
 
     # Operations to do upon closing
     def on_closing(self):
-        print("Closing...")
-        self.tuner_engine.stop()
-        self.metronome_engine.stop()
+        self.tuner_engine.close()
+        self.metronome_engine.close()
         self.destroy()
 
 if __name__ == "__main__":

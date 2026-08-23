@@ -5,13 +5,17 @@ import aubio
 from pitch_utilities import TuningStrategyFactory
 
 class TunerEngine:
-    # Constructor
+    MIN_CONFIDENCE = 0.65
+    MIN_FREQ = 40.0
+
     def __init__(self, rate=44100, chunk=2048, sample_format=pa.paInt16, channels=1, default_preset="E Standard"):
-        # Audio capture constants
         self.rate = rate
         self.chunk = chunk
         self.format = sample_format
         self.channels = channels
+
+        # PyAudio instance
+        self.p = pa.PyAudio()
 
         # Aubio setup for YIN
         self.pitch_o = aubio.pitch("yin", self.chunk, self.chunk, self.rate)
@@ -19,16 +23,17 @@ class TunerEngine:
         self.pitch_o.set_tolerance(0.8)
 
         # Threading stuff
-        self.is_running = False
+        self._stop_event = threading.Event()
         self._thread = None
 
-        # Obeservers list
         self._observers = []
 
-        # Tuning strategy default
         self.current_strategy = TuningStrategyFactory.create_strategy(default_preset)
 
-    # Getter
+    @property
+    def is_running(self):
+        return self._thread is not None and self._thread.is_alive()
+
     def get_current_preset_name(self):
         return self.current_strategy.name
 
@@ -48,24 +53,25 @@ class TunerEngine:
     # Threading
     def start(self):
         if not self.is_running:
-            self.is_running = True
+            self._stop_event.clear()
             self._thread = threading.Thread(target=self._audio_loop, daemon=True)
             self._thread.start()
 
     def stop(self):
-        self.is_running = False
+        self._stop_event.set()
         if self._thread and self._thread.is_alive():
             self._thread.join(timeout=1.0)
 
-    # Strategy tuning preset
+    def close(self):
+        self.stop()
+        self.p.terminate()
+
     def set_preset(self, preset_name):
         self.current_strategy = TuningStrategyFactory.create_strategy(preset_name)
 
     # Audio engine thread loop
     def _audio_loop(self):
-        p = pa.PyAudio()
-
-        stream = p.open(
+        stream = self.p.open(
             format=self.format,
             channels=self.channels,
             rate=self.rate,
@@ -73,21 +79,18 @@ class TunerEngine:
             frames_per_buffer=self.chunk
         )
 
-        print("Go on, pluck a string, don't be afraid.")
-
         try:
-            while self.is_running:
+            while not self._stop_event.is_set():
                 raw_input = stream.read(self.chunk, exception_on_overflow=False)
                 audio_data = np.frombuffer(raw_input, dtype=np.int16).astype(np.float32) / 32768.0
 
                 detected_freq = float(self.pitch_o(audio_data)[0])
                 confidence = float(self.pitch_o.get_confidence())
 
-                if confidence > 0.65 and detected_freq > 40:
+                if confidence > self.MIN_CONFIDENCE and detected_freq > self.MIN_FREQ:
                     note, target_freq, cents = self.current_strategy.get_target(detected_freq)
                     self._notify_observers(note, target_freq, cents, detected_freq)
 
         finally:
             stream.stop_stream()
             stream.close()
-            p.terminate()
