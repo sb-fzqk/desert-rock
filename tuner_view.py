@@ -4,24 +4,24 @@ import tkinter as tk
 import time
 from tuner_engine import TunerEngine
 from pitch_utilities import TuningStrategyFactory
+import theme
 
 class NeedleGauge(tk.Canvas):
-    def __init__(self, master, width=300, height=40, bg_color="#2b2b2b", line_color="#a0a0a0", needle_color="#909090", **kwargs):
+    def __init__(self, master, width=300, height=60, bg_color=theme.COLOR_GAUGE_BG, line_color=theme.COLOR_GAUGE_LINE, needle_color=theme.COLOR_GAUGE_NEEDLE, track_color=theme.COLOR_GAUGE_TRACK, **kwargs):
         super().__init__(master, width=width, height=height, bg=bg_color, highlightthickness=0, bd=0, **kwargs)
 
         self.width = width
         self.height = height
         self.center_x = width // 2
-        self.needle_color = needle_color
 
         # Needle track
-        self.create_line(20, self.height // 2, width - 20, self.height // 2, fill="#404040", width=2)
+        self.create_line(20, self.height // 2, width - 20, self.height // 2, fill=track_color, width=2)
 
         # Target line at the centre
         self.create_line(self.center_x, 5, self.center_x, self.height - 5, fill=line_color, width=3)
 
         # Moving needle
-        self.needle = self.create_line(self.center_x, 5, self.center_x, self.height - 5, fill=self.needle_color, width=4)
+        self.needle = self.create_line(self.center_x, 5, self.center_x, self.height - 5, fill=needle_color, width=4)
 
     def set_cents(self, cents):
         clamped_cents = max(-50, min(50, cents))
@@ -36,10 +36,10 @@ class TunerView(ctk.CTkFrame):
         super().__init__(master, **kwargs)
         self.tuner = tuner_engine
 
+        self.default_fg = self.cget("fg_color")
+
         self._build_ui()
         self.tuner.register_observer(self._on_pitch_detected)
-
-        self.default_fg = self.cget("fg_color")
 
         # Green in-tune indicator stuff
         self.in_tune_start_time = None
@@ -59,7 +59,7 @@ class TunerView(ctk.CTkFrame):
     def _build_ui(self):
         # Note display
         self.note_label = ctk.CTkLabel(self, text="--", font=ctk.CTkFont(size=64, weight="bold"))
-        self.note_label.pack(pady=(25, 10))
+        self.note_label.pack(pady=(35, 10))
 
         # Cents / In tune label
         self.status_label = ctk.CTkLabel(self, text="Pluck a string", font=ctk.CTkFont(size=16))
@@ -70,11 +70,11 @@ class TunerView(ctk.CTkFrame):
         self.freq_label.pack(pady=5)
 
         # Visual tuning gauge
-        self.gauge = NeedleGauge(self, width=300, height=40, bg_color="#1f1f1f", line_color="#808080", needle_color="#ffffff")
+        self.gauge = NeedleGauge(self, width=300, height=40, bg_color=self.default_fg[1])
         self.gauge.pack(pady=(20, 30))
 
         # Tuning preset drop-down
-        self.preset_selector = ctk.CTkOptionMenu(self, values=list(TuningStrategyFactory.STRATEGIES.keys()), command=self._on_preset_change, fg_color="#1f1f1f", button_color="#404040", button_hover_color="#808080")
+        self.preset_selector = ctk.CTkOptionMenu(self, values=list(TuningStrategyFactory.STRATEGIES.keys()), command=self._on_preset_change)
         self.preset_selector.pack(pady=(10, 10))
         self.preset_selector.set(self.tuner.get_current_preset_name())
 
@@ -115,7 +115,7 @@ class TunerView(ctk.CTkFrame):
 
         # Change text colour depending on the status
         if abs(smoothed_cents) <= self.IN_TUNE_CENTS_THRESHOLD:
-            self.status_label.configure(text="In Tune", text_color="#2ed573")
+            self.status_label.configure(text="In Tune", text_color=theme.COLOR_STATUS_IN_TUNE)
 
             if self.in_tune_start_time is None:
                 self.in_tune_start_time = current_time
@@ -123,15 +123,15 @@ class TunerView(ctk.CTkFrame):
             elif current_time - self.in_tune_start_time >= self.HOLD_DURATION:
                 if not self.is_green:
                     self.is_green = True
-                    self.configure(fg_color="#143d22")
+                    self.configure(fg_color=theme.COLOR_BG_IN_TUNE)
 
         else:
             self._reset_green_fg()
 
             if smoothed_cents < 0:
-                self.status_label.configure(text=f"Flat ({smoothed_cents:.1f} cents)", text_color="#ff4757")
+                self.status_label.configure(text=f"Flat ({smoothed_cents:.1f} cents)", text_color=theme.COLOR_STATUS_OFF_TUNE)
             else:
-                self.status_label.configure(text=f"Sharp (+{smoothed_cents:.1f} cents)", text_color="#ff4757")
+                self.status_label.configure(text=f"Sharp (+{smoothed_cents:.1f} cents)", text_color=theme.COLOR_STATUS_OFF_TUNE)
 
     def _reset_ui(self):
         self.note_label.configure(text="--")

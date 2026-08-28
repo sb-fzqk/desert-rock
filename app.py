@@ -4,6 +4,9 @@ from tuner_view import TunerView
 from metronome_engine import MetronomeEngine
 from metronome_view import MetronomeView
 
+ctk.set_default_color_theme("theme.json")
+ctk.set_appearance_mode("Dark")
+
 # Main app window
 class DesertRock(ctk.CTk):
     # Constructor
@@ -13,8 +16,6 @@ class DesertRock(ctk.CTk):
         self.title("Desert Rock")
         self.geometry("350x450")
         self.minsize(350, 450)
-
-        ctk.set_appearance_mode("Dark")
 
         # Engines
         self.tuner_engine = TunerEngine()
@@ -33,7 +34,7 @@ class DesertRock(ctk.CTk):
         self.view_selector.set("Tuner")
         self.view_selector.pack(fill="x")
 
-        self.container = ctk.CTkFrame(self, fg_color="#1f1f1f")
+        self.container = ctk.CTkFrame(self)
         self.container.pack(fill="both", expand=True, padx=10, pady=5)
 
         self.views = {
