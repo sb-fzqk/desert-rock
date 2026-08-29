@@ -43,7 +43,7 @@ class MetronomeView(ctk.CTkFrame):
         self.ts_selector.set(str(self.metronome.ts))
         self.ts_selector.pack(side="right", padx=5)
 
-        self.toggle_btn = ctk.CTkButton(self, text="Play", font=ctk.CTkFont(size=18, weight="bold"), height=45, width=160, command=self._toggle_playback)
+        self.toggle_btn = ctk.CTkButton(self, text="Play", font=ctk.CTkFont(size=18, weight="bold"), height=45, width=150, border_width=1, fg_color=theme.COLOR_BTN, hover_color=theme.COLOR_BTN_HOVER, border_color=theme.COLOR_BTN_BORDER, command=self._toggle_playback)
         self.toggle_btn.pack(pady=25)
 
     def _rebuild_beat_indicators(self):

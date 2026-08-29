@@ -1,13 +1,22 @@
 # Colour constants for dynamic state changes and non-CTk elements
+
+# Tuner indicators
 COLOR_BG_IN_TUNE = "#143D22"
 COLOR_STATUS_IN_TUNE = "#00E676"
 COLOR_STATUS_OFF_TUNE = "#FF3B30"
 
-COLOR_GAUGE_BG = "#121214"
+# Accented buttons
+COLOR_BTN = "#FF6B35"
+COLOR_BTN_HOVER = "#E05320"
+COLOR_BTN_BORDER = "#FF8552"
+
+# Needle gauge
+COLOR_GAUGE_BG = "#1C1C22"
 COLOR_GAUGE_TRACK = "#808080"
-COLOR_GAUGE_LINE = "#1C1C22"
+COLOR_GAUGE_LINE = "#808080"
 COLOR_GAUGE_NEEDLE = "#F4F4F6"
 
+# Metronome indicators
 COLOR_DOT_BLANK = "#808080"
 COLOR_DOT_NORMAL = "#00E676"
 COLOR_DOT_DOWNBEAT = "#FF3B30"

@@ -70,7 +70,7 @@ class TunerView(ctk.CTkFrame):
         self.freq_label.pack(pady=5)
 
         # Visual tuning gauge
-        self.gauge = NeedleGauge(self, width=300, height=40, bg_color=self.default_fg[1])
+        self.gauge = NeedleGauge(self, width=300, height=40, bg_color=self._apply_appearance_mode(self.default_fg))
         self.gauge.pack(pady=(20, 30))
 
         # Tuning preset drop-down
