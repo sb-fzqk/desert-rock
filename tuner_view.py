@@ -152,3 +152,14 @@ class TunerView(ctk.CTkFrame):
         if self.is_green:
             self.is_green = False
             self.configure(fg_color=self.default_fg)
+
+    def _open_preset_dropdown(self):
+        if hasattr(self.preset_selector, "_open_dropdown_menu"):
+            self.preset_selector._open_dropdown_menu()
+
+    # Key bindings
+    def bind_shortcuts(self, root):
+        root.bind("<space>", lambda e: self._open_preset_dropdown())
+
+    def unbind_shortcuts(self, root):
+        root.unbind("<space>")

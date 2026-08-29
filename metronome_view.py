@@ -95,3 +95,14 @@ class MetronomeView(ctk.CTkFrame):
         self._reset_indicators()
         dot_colour = theme.COLOR_DOT_DOWNBEAT if is_higher else theme.COLOR_DOT_NORMAL
         self.beat_indicators[beat_index].configure(fg_color=dot_colour)
+
+    # Key bindings
+    def bind_shortcuts(self, root):
+        root.bind("<space>", lambda e: self._toggle_playback())
+        root.bind("<Left>", lambda e: self._adjust_bpm(-1))
+        root.bind("<Right>", lambda e: self._adjust_bpm(1))
+
+    def unbind_shortcuts(self, root):
+        root.unbind("<space>")
+        root.unbind("<Left>")
+        root.unbind("<Right>")

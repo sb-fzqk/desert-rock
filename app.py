@@ -26,6 +26,9 @@ class DesertRock(ctk.CTk):
         # Clean window closure
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+        self.bind("<Key-c>", self._cycle_views)
+        self.bind("<Key-C>", self._cycle_views)
+
     def _build_ui(self):
         self.nav_frame = ctk.CTkFrame(self)
         self.nav_frame.pack(fill="x", padx=10, pady=5)
@@ -47,6 +50,8 @@ class DesertRock(ctk.CTk):
     def _switch_view(self, selected_view):
         for view in self.views.values():
             view.pack_forget()
+            if hasattr(view, "unbind_shortcuts"):
+                view.unbind_shortcuts(self)
 
         if selected_view == "Metronome":
             self.tuner_engine.stop()
@@ -54,7 +59,18 @@ class DesertRock(ctk.CTk):
             self.metronome_engine.stop()
             self.tuner_engine.start()
 
-        self.views[selected_view].pack(fill="both", expand=True)
+        current_view = self.views[selected_view]
+        current_view.pack(fill="both", expand=True)
+
+        if hasattr(current_view, "bind_shortcuts"):
+            current_view.bind_shortcuts(self)
+
+    def _cycle_views(self, event=None):
+        current_view = self.view_selector.get()
+        next_view = "Metronome" if current_view == "Tuner" else "Tuner"
+
+        self.view_selector.set(next_view)
+        self._switch_view(next_view)
 
     def on_closing(self):
         self.tuner_engine.close()
