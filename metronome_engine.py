@@ -1,18 +1,15 @@
 import threading
 import time
 import numpy as np
-import pyaudio as pa
+import sounddevice as sd
 
 class MetronomeEngine:
-    def __init__(self, bpm=120, ts=4, rate=44100, sample_format=pa.paInt16, channels=1):
+    def __init__(self, bpm=120, ts=4, rate=44100, sample_format="int16", channels=1):
         self.bpm = bpm
         self.ts = ts
         self.rate = rate
         self.format = sample_format
         self.channels = channels
-
-        # PyAudio instance
-        self.p = pa.PyAudio()
 
         # Threading stuff
         self._stop_event = threading.Event()
@@ -78,16 +75,15 @@ class MetronomeEngine:
 
     def close(self):
         self.stop()
-        self.p.terminate()
 
     # Metronome timing loop (LLM-assisted)
     def _metro_loop(self):
-        stream = self.p.open(
-            format=self.format,
+        stream = sd.RawOutputStream(
+            samplerate=self.rate,
             channels=self.channels,
-            rate=self.rate,
-            output=True
+            dtype=self.format
         )
+        stream.start()
 
         try:
             next_beat_time = time.perf_counter()
@@ -112,5 +108,5 @@ class MetronomeEngine:
                 time.sleep(0.0005)
 
         finally:
-            stream.stop_stream()
+            stream.stop()
             stream.close()
