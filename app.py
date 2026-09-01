@@ -74,6 +74,8 @@ class DesertRock(ctk.CTk):
         if hasattr(current_view, "bind_shortcuts"):
             current_view.bind_shortcuts(self)
 
+        self.update_idletasks()
+
     def _cycle_views(self, event=None):
         current_view = self.view_selector.get()
         next_view = "Metronome" if current_view == "Tuner" else "Tuner"
