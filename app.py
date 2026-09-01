@@ -65,6 +65,7 @@ class DesertRock(ctk.CTk):
             self.tuner_engine.stop()
         elif selected_view == "Tuner":
             self.metronome_engine.stop()
+            self.views["Metronome"].reset_ui()
             self.tuner_engine.start()
 
         current_view = self.views[selected_view]

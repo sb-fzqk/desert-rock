@@ -84,6 +84,10 @@ class MetronomeView(ctk.CTkFrame):
         for dot in self.beat_indicators:
             dot.configure(fg_color=theme.COLOR_DOT_BLANK)
 
+    def reset_ui(self):
+        self.toggle_btn.configure(text="Play")
+        self._reset_indicators()
+
     # Observer thread sync
     def _on_click(self, beat_num, is_higher):
         self.after(0, self._flash_beat, beat_num - 1, is_higher)
