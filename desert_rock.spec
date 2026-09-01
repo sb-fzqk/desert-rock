@@ -1,8 +1,11 @@
 import sys
-from PyInstaller.utils.hooks import collect_data_files
+from PyInstaller.utils.hooks import collect_data_files, collect_dynamic_libs
 
 datas = [('theme.json', '.')]
 datas += collect_data_files('customtkinter')
+datas += collect_data_files('sounddevice')
+
+binaries = collect_dynamic_libs('sounddevice')
 
 block_cipher = None
 
