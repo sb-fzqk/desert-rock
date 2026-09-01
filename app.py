@@ -39,14 +39,14 @@ class DesertRock(ctk.CTk):
 
     def _build_ui(self):
         self.nav_frame = ctk.CTkFrame(self)
-        self.nav_frame.pack(fill="x", padx=10, pady=5)
+        self.nav_frame.pack(fill="x", padx=10, pady=(10, 5))
 
         self.view_selector = ctk.CTkSegmentedButton(self.nav_frame, values=["Tuner", "Metronome"], command=self._switch_view, font=ctk.CTkFont(size=12, weight="bold"))
         self.view_selector.set("Tuner")
         self.view_selector.pack(fill="x")
 
         self.container = ctk.CTkFrame(self)
-        self.container.pack(fill="both", expand=True, padx=10, pady=5)
+        self.container.pack(fill="both", expand=True, padx=10, pady=(5, 10))
 
         self.views = {
             "Tuner": TunerView(self.container, tuner_engine=self.tuner_engine),
