@@ -22,6 +22,80 @@ TUNING_PRESETS = {
     }
 }
 
+# Dependency-free implementation of the YIN pitch estimation algorithm (de Cheveigne & Kawahara, 2002) (LLM-assisted)
+class YinPitchDetector:
+    def __init__(self, sample_rate, buffer_size, min_freq=40.0, max_freq=2000.0, threshold=0.15):
+        self.sample_rate = sample_rate
+        self.buffer_size = buffer_size
+        self.threshold = threshold
+
+        # Lag (tau) search range corresponding to the expected pitch range
+        self.tau_min = max(2, int(sample_rate / max_freq))
+        self.tau_max = min(buffer_size // 2, int(sample_rate / min_freq))
+
+    # Returns frequency and confidence for a mono float buffer. 0.0 for both when no pitch could be estimated
+    def detect(self, audio_buffer):
+        diff = self._difference_function(audio_buffer)
+        cmnd = self._cumulative_mean_normalised_difference(diff)
+
+        tau = self._absolute_threshold(cmnd)
+        if tau is None:
+            return 0.0, 0.0
+
+        refined_tau = self._parabolic_interpolation(cmnd, tau)
+        if refined_tau <= 0:
+            return 0.0, 0.0
+
+        freq = self.sample_rate / refined_tau
+        confidence = 1.0 - cmnd[tau]
+
+        return float(freq), float(max(0.0, min(1.0, confidence)))
+
+    # Squared-difference function over the lag search range
+    def _difference_function(self, x):
+        w = self.buffer_size
+        diff = np.zeros(self.tau_max + 1)
+
+        for tau in range(1, self.tau_max + 1):
+            delta = x[:w - tau] - x[tau:w]
+            diff[tau] = np.dot(delta, delta)
+
+        return diff
+
+    # Cumulative mean normalised difference function
+    def _cumulative_mean_normalised_difference(self, diff):
+        cmnd = np.ones_like(diff)
+        running_sum = 0.0
+
+        for tau in range(1, len(diff)):
+            running_sum += diff[tau]
+            cmnd[tau] = diff[tau] * tau / running_sum if running_sum > 0 else 1.0
+
+        return cmnd
+
+    # First tau under threshold, walked forward to its local minimum
+    def _absolute_threshold(self, cmnd):
+        for tau in range(self.tau_min, len(cmnd) - 1):
+            if cmnd[tau] < self.threshold:
+                while tau + 1 < len(cmnd) and cmnd[tau + 1] < cmnd[tau]:
+                    tau += 1
+                return tau
+
+        return None
+
+    # Parabolic interpolation around tau for a sub-sample estimate
+    def _parabolic_interpolation(self, cmnd, tau):
+        if tau <= 0 or tau >= len(cmnd) - 1:
+            return float(tau)
+
+        s0, s1, s2 = cmnd[tau - 1], cmnd[tau], cmnd[tau + 1]
+        denom = 2 * s1 - s2 - s0
+
+        if denom == 0:
+            return float(tau)
+
+        return tau + (s2 - s0) / (2 * denom)
+
 # Abstract base Strategy
 class TuningStrategy(ABC):
     @abstractmethod

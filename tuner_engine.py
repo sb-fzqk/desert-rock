@@ -1,8 +1,7 @@
 import threading
 import sounddevice as sd
 import numpy as np
-import aubio
-from pitch_utilities import TuningStrategyFactory
+from pitch_utilities import TuningStrategyFactory, YinPitchDetector
 
 class TunerEngine:
     MIN_CONFIDENCE = 0.65
@@ -14,10 +13,7 @@ class TunerEngine:
         self.format = sample_format
         self.channels = channels
 
-        # Aubio setup for YIN
-        self.pitch_o = aubio.pitch("yin", self.chunk, self.chunk, self.rate)
-        self.pitch_o.set_unit("Hz")
-        self.pitch_o.set_tolerance(0.8)
+        self.pitch_detector = YinPitchDetector(sample_rate=self.rate, buffer_size=self.chunk, min_freq=self.MIN_FREQ)
 
         # Threading stuff
         self._stop_event = threading.Event()
@@ -80,8 +76,7 @@ class TunerEngine:
                 raw_input, overflowed = stream.read(self.chunk)
                 audio_data = np.frombuffer(bytes(raw_input), dtype=np.int16).astype(np.float32) / 32768.0
 
-                detected_freq = float(self.pitch_o(audio_data)[0])
-                confidence = float(self.pitch_o.get_confidence())
+                detected_freq, confidence = self.pitch_detector.detect(audio_data)
 
                 if confidence > self.MIN_CONFIDENCE and detected_freq > self.MIN_FREQ:
                     note, target_freq, cents = self.current_strategy.get_target(detected_freq)
