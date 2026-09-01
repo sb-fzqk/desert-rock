@@ -1,10 +1,18 @@
+import os
+import sys
 import customtkinter as ctk
 from tuner_engine import TunerEngine
 from tuner_view import TunerView
 from metronome_engine import MetronomeEngine
 from metronome_view import MetronomeView
 
-ctk.set_default_color_theme("theme.json")
+# Get an absolute path to resource (LLM-assisted)
+def get_resource_path(relative_path):
+    if hasattr(sys, '_MEIPASS'):
+        return os.path.join(sys._MEIPASS, relative_path)
+    return os.path.join(os.path.abspath("."), relative_path)
+
+ctk.set_default_color_theme(get_resource_path("theme.json"))
 ctk.set_appearance_mode("Dark")
 
 # Main app window
