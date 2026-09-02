@@ -12,15 +12,13 @@ block_cipher = None
 a = Analysis(
     ['app.py'],
     pathex=[],
-    binaries=[],
+    binaries=binaries,
     datas=datas,
     hiddenimports=['sounddevice', 'numpy', 'customtkinter'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assembles=False,
     cipher=block_cipher,
     noarchive=False,
 )
