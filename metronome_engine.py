@@ -1,15 +1,19 @@
+import sys
+import ctypes
 import threading
 import time
 import numpy as np
 import sounddevice as sd
 
 class MetronomeEngine:
-    def __init__(self, bpm=120, ts=4, rate=44100, sample_format="int16", channels=1):
+    def __init__(self, bpm=120, ts=4, rate=44100, sample_format="int16", channels=1, latency='low', blocksize=256):
         self.bpm = bpm
         self.ts = ts
         self.rate = rate
         self.format = sample_format
         self.channels = channels
+        self.latency = latency
+        self.blocksize = blocksize
 
         # Threading stuff
         self._stop_event = threading.Event()
@@ -78,10 +82,18 @@ class MetronomeEngine:
 
     # Metronome timing loop (LLM-assisted)
     def _metro_loop(self):
+        if sys.platform == "win32":
+            try:
+                ctypes.windll.winmm.timeBeginPeriod(1)
+            except Exception:
+                pass
+
         stream = sd.RawOutputStream(
             samplerate=self.rate,
             channels=self.channels,
-            dtype=self.format
+            dtype=self.format,
+            latency=self.latency,
+            blocksize=self.blocksize
         )
         stream.start()
 
@@ -105,8 +117,15 @@ class MetronomeEngine:
                     beat_interval = 60.0 / self.bpm
                     next_beat_time += beat_interval
 
-                time.sleep(0.0005)
+                remaining = next_beat_time - time.perf_counter()
+                if remaining > 0.002:
+                    time.sleep(0.001)
 
         finally:
             stream.stop()
             stream.close()
+            if sys.platform == "win32":
+                try:
+                    ctypes.windll.winmm.timeEndPeriod(1)
+                except Exception:
+                    pass
