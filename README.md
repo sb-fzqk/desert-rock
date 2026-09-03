@@ -1,6 +1,6 @@
 # Desert Rock
 
-**Desert Rock** is a real-time, cross-platform (Linux & macOS) guitar tuner and metronome built for speed, stability, and zero visual bloat. Built with Python and CustomTkinter.
+**Desert Rock** is a real-time, cross-platform (Linux & macOS) guitar tuner and metronome built for speed, stability, and zero visual bloat. Developed with Python and CustomTkinter.
 
 ## Features
 
